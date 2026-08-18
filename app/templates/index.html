@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }}</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{--bg:#0a0a0f;--surface:#1a1a2e;--surface2:#16213e;--border:#0f3460;--primary:#00d4ff;--success:#00ff88;--warning:#ffaa00;--danger:#ff4444;--text:#e0e0e0;--text2:#888;--surface3:#0a0a1a}
+        body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+        .container{max-width:1400px;margin:0 auto;padding:20px}
+        header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px}
+        .logo{display:flex;align-items:center;gap:12px}
+        .logo h1{font-size:1.5em;color:var(--primary)}
+        .logo .shield{font-size:1.8em}
+        .header-stats{display:flex;gap:20px;align-items:center}
+        .header-stat{text-align:center;padding:8px 16px;background:var(--bg);border-radius:8px;border:1px solid var(--border)}
+        .header-stat-value{font-size:1.4em;font-weight:700;color:var(--primary)}
+        .header-stat-label{font-size:0.75em;color:var(--text2)}
+        .target-info{display:flex;align-items:center;gap:12px}
+        .target-select{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:6px;cursor:pointer}
+        .status-badge{padding:4px 12px;border-radius:20px;font-size:0.85em;font-weight:600}
+        .status-online{background:#0a3d2a;color:var(--success);border:1px solid var(--success)}
+        .status-offline{background:#3d0a0a;color:var(--danger);border:1px solid var(--danger)}
+        .score-card{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border:1px solid var(--border);border-radius:12px;padding:30px;text-align:center;margin-bottom:20px;position:relative;overflow:hidden}
+        .score-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,var(--primary),transparent);animation:rotate 10s linear infinite;opacity:0.1}
+        @keyframes rotate{100%{transform:rotate(360deg)}}
+        .score-value{font-size:3.5em;font-weight:700;margin:10px 0;position:relative;z-index:1}
+        .score-grade{font-size:1.3em;color:var(--text2);position:relative;z-index:1}
+        .score-label{color:var(--text2);font-size:0.9em;position:relative;z-index:1}
+        .score-message{color:var(--text2);margin-top:8px;font-size:0.9em;position:relative;z-index:1}
+        .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+        .tab{flex:1;min-width:100px;padding:15px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;transition:all 0.3s}
+        .tab:hover{background:var(--surface2);border-color:var(--primary)}
+        .tab.active{background:var(--border);border-color:var(--primary);color:var(--primary)}
+        .tab-title{font-weight:600;font-size:0.95em}
+        .tab-icon{font-size:1.4em;margin-bottom:5px}
+        .tab-badge{background:var(--danger);color:#fff;font-size:0.7em;padding:2px 6px;border-radius:10px;margin-left:5px}
+        .panel{display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+        .panel.active{display:block}
+        .panel-title{font-size:1.3em;color:var(--primary);margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+        .form-group{margin-bottom:15px}
+        .form-group label{display:block;margin-bottom:5px;color:var(--text2);font-size:0.9em}
+        .form-group select,.form-group textarea,.form-group input{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:inherit}
+        .form-group textarea{min-height:100px;resize:vertical}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+        .btn{padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.3s;display:inline-flex;align-items:center;gap:8px}
+        .btn-primary{background:var(--primary);color:#000}
+        .btn-primary:hover{background:#00b8d4}
+        .btn-danger{background:var(--danger);color:#fff}
+        .btn-danger:hover{background:#cc0000}
+        .btn-success{background:var(--success);color:#000}
+        .btn-success:hover{background:#00cc6a}
+        .btn-warning{background:var(--warning);color:#000}
+        .btn-warning:hover{background:#cc8800}
+        .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+        .btn-secondary:hover{background:var(--border)}
+        .btn:disabled{opacity:0.5;cursor:not-allowed}
+        .btn-sm{padding:6px 12px;font-size:0.85em}
+        .result-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px;margin-top:15px}
+        .result-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+        .result-status{padding:4px 12px;border-radius:4px;font-weight:600;font-size:0.9em}
+        .status-safe{background:#0a3d2a;color:var(--success)}
+        .status-suspicious{background:#3d3d0a;color:var(--warning)}
+        .status-vulnerable{background:#3d0a0a;color:var(--danger)}
+        .result-content{font-family:'Consolas',monospace;font-size:0.9em;white-space:pre-wrap;word-break:break-word}
+        .result-payload{font-family:'Consolas',monospace;font-size:0.85em;color:var(--primary);background:var(--surface3);padding:8px;border-radius:4px;margin-bottom:10px}
+        .fuzzer-progress{margin:15px 0}
+        .progress-bar{height:24px;background:var(--bg);border-radius:12px;overflow:hidden;border:1px solid var(--border);position:relative}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--success));transition:width 0.3s;position:relative}
+        .progress-fill::after{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent);animation:shimmer 2s infinite}
+        @keyframes shimmer{100%{transform:translateX(100%)}}
+        .progress-text{text-align:center;margin-top:8px;font-size:0.9em;color:var(--text2)}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin:15px 0}
+        .stat-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px;text-align:center}
+        .stat-value{font-size:1.8em;font-weight:700}
+        .stat-label{font-size:0.85em;color:var(--text2);margin-top:5px}
+        .stat-safe{color:var(--success)}
+        .stat-suspicious{color:var(--warning)}
+        .stat-vulnerable{color:var(--danger)}
+        .seed-list{display:flex;flex-direction:column;gap:10px}
+        .seed-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px;cursor:pointer;transition:all 0.3s}
+        .seed-item:hover{border-color:var(--primary)}
+        .seed-item.selected{border-color:var(--primary);background:var(--surface2)}
+        .seed-item.locked{opacity:0.5;cursor:not-allowed}
+        .seed-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+        .seed-name{font-weight:600}
+        .seed-severity{padding:2px 8px;border-radius:4px;font-size:0.8em}
+        .severity-critical{background:#3d0a0a;color:var(--danger)}
+        .severity-high{background:#3d1a0a;color:#ff8800}
+        .severity-medium{background:#3d3d0a;color:var(--warning)}
+        .severity-low{background:#0a3d0a;color:var(--success)}
+        .seed-desc{color:var(--text2);font-size:0.9em;margin-top:5px}
+        .seed-meta{display:flex;gap:15px;margin-top:8px;font-size:0.85em;color:var(--text2)}
+        .results-list{display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto}
+        .result-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px}
+        .result-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+        .detection-details{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+        .finding{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:0.85em}
+        .finding-dot{width:8px;height:8px;border-radius:50%}
+        .dot-critical{background:var(--danger)}
+        .dot-high{background:#ff8800}
+        .dot-medium{background:var(--warning)}
+        .dot-low{background:var(--success)}
+        .empty-state{text-align:center;padding:40px;color:var(--text2)}
+        .level-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px;margin-bottom:10px}
+        .level-header{display:flex;justify-content:space-between;align-items:center}
+        .level-name{font-weight:600}
+        .level-status{padding:4px 10px;border-radius:4px;font-size:0.8em}
+        .level-unlocked{background:#0a3d2a;color:var(--success)}
+        .level-locked{background:#3d0a0a;color:var(--danger)}
+        .level-progress{margin-top:10px}
+        .level-bar{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+        .level-fill{height:100%;background:var(--primary);transition:width 0.3s}
+        .mutation-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px;margin-bottom:10px}
+        .mutation-type{font-weight:600;color:var(--primary);margin-bottom:5px}
+        .mutation-desc{font-size:0.85em;color:var(--text2);margin-bottom:10px}
+        .mutation-original{font-family:'Consolas',monospace;font-size:0.85em;color:var(--text2);margin-bottom:5px}
+        .mutation-result{font-family:'Consolas',monospace;font-size:0.9em;color:var(--success)}
+        .diff-container{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px}
+        .diff-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:15px}
+        .diff-title{font-weight:600;margin-bottom:10px;font-size:0.9em}
+        .diff-expected{color:var(--success)}
+        .diff-actual{color:var(--danger)}
+        .diff-leaked{background:var(--danger);color:#fff;padding:2px 4px;border-radius:2px}
+        .timeline{position:relative;padding-left:30px}
+        .timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--border)}
+        .timeline-item{position:relative;margin-bottom:20px;padding:15px;background:var(--bg);border:1px solid var(--border);border-radius:8px}
+        .timeline-item::before{content:'';position:absolute;left:-25px;top:20px;width:12px;height:12px;border-radius:50%;border:2px solid var(--border)}
+        .timeline-item.safe::before{background:var(--success)}
+        .timeline-item.vulnerable::before{background:var(--danger)}
+        .timeline-item.suspicious::before{background:var(--warning)}
+        .timeline-time{font-size:0.8em;color:var(--text2)}
+        .vuln-map{overflow-x:auto}
+        .vuln-table{width:100%;border-collapse:collapse}
+        .vuln-table th,.vuln-table td{padding:10px;border:1px solid var(--border);text-align:center}
+        .vuln-table th{background:var(--surface2);color:var(--primary)}
+        .vuln-table td{background:var(--bg)}
+        .vuln-found{color:var(--success)}
+        .vuln-blocked{color:var(--danger)}
+        .vuln-untested{color:var(--text2)}
+        .hint-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:15px;margin-top:10px}
+        .hint-title{font-weight:600;color:var(--warning);margin-bottom:10px}
+        .hint-content{font-size:0.9em}
+        .hint-hidden{color:var(--text2);font-style:italic}
+        .challenge-timer{font-size:2em;font-weight:700;text-align:center;padding:20px;background:var(--bg);border-radius:8px;border:1px solid var(--border)}
+        .challenge-timer.urgent{color:var(--danger);animation:pulse 1s infinite}
+        @keyframes pulse{50%{opacity:0.5}}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .live-dot{width:8px;height:8px;background:var(--success);border-radius:50%;display:inline-block;animation:livePulse 1s infinite}
+        @keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        .rules-editor{max-height:300px;overflow-y:auto}
+        .rule-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;margin-bottom:8px}
+        .rule-item input[type="text"]{flex:1;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Consolas',monospace;font-size:0.85em}
+        .rule-item select{width:100px;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text)}
+        .leaderboard-entry{display:flex;align-items:center;gap:15px;padding:15px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:10px}
+        .leaderboard-rank{font-size:1.5em;font-weight:700;color:var(--primary);min-width:40px;text-align:center}
+        .leaderboard-rank.gold{color:#ffd700}
+        .leaderboard-rank.silver{color:#c0c0c0}
+        .leaderboard-rank.bronze{color:#cd7f32}
+        .leaderboard-info{flex:1}
+        .leaderboard-name{font-weight:600}
+        .leaderboard-score{font-size:1.2em;color:var(--primary)}
+        .leaderboard-meta{font-size:0.85em;color:var(--text2)}
+        .export-options{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+        .export-card{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all 0.3s}
+        .export-card:hover{border-color:var(--primary)}
+        .export-icon{font-size:2em;margin-bottom:10px}
+        .diff-highlight{background:rgba(255,68,68,0.2);border-left:3px solid var(--danger);padding:5px 10px;margin:5px 0}
+        @media(max-width:768px){.tabs{flex-wrap:wrap}.tab{min-width:calc(50% - 4px)}.stats-grid{grid-template-columns:repeat(2,1fr)}.form-row{grid-template-columns:1fr}.diff-container{grid-template-columns:1fr}.export-options{grid-template-columns:1fr}header{flex-direction:column}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="shield">&#x1F6E1;</span>
+                <div>
+                    <h1>{{ app_name }}</h1>
+                    <span style="color:var(--text2);font-size:0.85em">v{{ version }}</span>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="header-stat">
+                    <div class="header-stat-value" id="headerTests">0</div>
+                    <div class="header-stat-label">Tests</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-value stat-vulnerable" id="headerVulns">0</div>
+                    <div class="header-stat-label">Vulns</div>
+                </div>
+                <div class="header-stat">
+                    <div class="header-stat-value" id="headerLevel">1</div>
+                    <div class="header-stat-label">Level</div>
+                </div>
+            </div>
+            <div class="target-info">
+                <select class="target-select" id="targetSelect" onchange="switchTarget(this.value)">
+                    <option value="demo_ai" selected>Demo AI</option>
+                    <option value="ollama" id="ollamaOption" disabled>Ollama</option>
+                </select>
+                <span class="status-badge status-online" id="targetStatus"><span class="live-dot"></span> LIVE</span>
+            </div>
+        </header>
+
+        <div class="score-card">
+            <div class="score-label">SECURITY SCORE</div>
+            <div class="score-value" id="scoreValue">100</div>
+            <div class="score-grade" id="scoreGrade">Grade: A</div>
+            <div class="score-message" id="scoreMessage">Excellent - Strong security posture</div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('attack')">
+                <div class="tab-icon">&#x1F4A3;</div>
+                <div class="tab-title">Attack Lab</div>
+            </div>
+            <div class="tab" onclick="showTab('fuzzer')">
+                <div class="tab-icon">&#x1F50D;</div>
+                <div class="tab-title">Fuzzer</div>
+            </div>
+            <div class="tab" onclick="showTab('mutations')">
+                <div class="tab-icon">&#x1F500;</div>
+                <div class="tab-title">Mutations</div>
+            </div>
+            <div class="tab" onclick="showTab('detector')">
+                <div class="tab-icon">&#x1F6E1;</div>
+                <div class="tab-title">Detector</div>
+            </div>
+            <div class="tab" onclick="showTab('results')">
+                <div class="tab-icon">&#x1F4CB;</div>
+                <div class="tab-title">Results</div>
+            </div>
+            <div class="tab" onclick="showTab('vulnmap')">
+                <div class="tab-icon">&#x1F5FA;</div>
+                <div class="tab-title">Vuln Map</div>
+            </div>
+            <div class="tab" onclick="showTab('challenge')">
+                <div class="tab-icon">&#x23F1;</div>
+                <div class="tab-title">Challenge</div>
+            </div>
+            <div class="tab" onclick="showTab('leaderboard')">
+                <div class="tab-icon">&#x1F3C6;</div>
+                <div class="tab-title">Leaderboard</div>
+            </div>
+            <div class="tab" onclick="showTab('export')">
+                <div class="tab-icon">&#x1F4E4;</div>
+                <div class="tab-title">Export</div>
+            </div>
+        </div>
+
+        <div class="panel active" id="panel-attack">
+            <div class="panel-title">
+                <span>Attack Lab</span>
+                <span style="font-size:0.8em;color:var(--text2)" id="attackProgress">0 tests completed</span>
+            </div>
+            <div style="margin-bottom:20px">
+                <h3 style="margin-bottom:10px;color:var(--primary)">Levels</h3>
+                <div id="levelsContainer"></div>
+            </div>
+            <div class="form-group">
+                <label>SELECT TEST CATEGORY</label>
+                <select id="testCategory" onchange="filterSeeds()">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>SELECT TEST</label>
+                <select id="testSeed" onchange="showSeedInfo()">
+                    <option value="">Select a category first</option>
+                </select>
+            </div>
+            <div id="seedInfo" style="display:none" class="result-box">
+                <div id="seedInfoContent"></div>
+                <button class="btn btn-sm btn-secondary" onclick="showHints()" style="margin-top:10px">Show Hints</button>
+                <div id="hintsContainer"></div>
+            </div>
+            <div class="form-group" style="margin-top:15px">
+                <label>OR ENTER CUSTOM PAYLOAD</label>
+                <textarea id="customPayload" placeholder="Enter your test payload here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>OPTIONAL CONTEXT</label>
+                <textarea id="testContext" placeholder="Additional context for the AI (optional)" style="min-height:60px"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="runTest()">RUN TEST</button>
+            <div id="testResult"></div>
+            <div id="diffView" style="display:none"></div>
+        </div>
+
+        <div class="panel" id="panel-fuzzer">
+            <div class="panel-title">Fuzzer</div>
+            <p style="color:var(--text2);margin-bottom:15px">The fuzzer takes seed test cases and creates mutated variants to discover vulnerabilities.</p>
+            <div class="form-group">
+                <label>FUZZING TARGET</label>
+                <select id="fuzzTarget">
+                    <option value="all">All Seeds</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:15px">
+                <button class="btn btn-primary" id="fuzzStartBtn" onclick="startFuzzer()">START FUZZING</button>
+                <button class="btn btn-danger" id="fuzzStopBtn" onclick="stopFuzzer()" style="display:none">STOP</button>
+            </div>
+            <div class="fuzzer-progress" id="fuzzProgress" style="display:none">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                </div>
+                <div class="progress-text" id="progressText">0%</div>
+            </div>
+            <div class="stats-grid" id="fuzzStats" style="display:none">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-safe" id="statSafe">0</div>
+                    <div class="stat-label">Safe</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-suspicious" id="statSuspicious">0</div>
+                    <div class="stat-label">Suspicious</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value stat-vulnerable" id="statVulnerable">0</div>
+                    <div class="stat-label">Vulnerable</div>
+                </div>
+            </div>
+            <div class="results-list" id="fuzzResults"></div>
+        </div>
+
+        <div class="panel" id="panel-mutations">
+            <div class="panel-title">Mutation Playground</div>
+            <p style="color:var(--text2);margin-bottom:15px">See how payloads are transformed by different mutation strategies.</p>
+            <div class="form-group">
+                <label>ORIGINAL PAYLOAD</label>
+                <textarea id="mutationInput" placeholder="Enter a payload to see mutations..." style="min-height:60px"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="previewMutations()">GENERATE MUTATIONS</button>
+            <div id="mutationResults" style="margin-top:15px"></div>
+        </div>
+
+        <div class="panel" id="panel-detector">
+            <div class="panel-title">
+                <span>Security Detector</span>
+                <div>
+                    <button class="btn btn-sm btn-secondary" onclick="showDetectorRules()">View Rules</button>
+                    <button class="btn btn-sm btn-warning" onclick="resetDetectorRules()">Reset Rules</button>
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <h3 style="margin-bottom:10px">Test Response</h3>
+                    <div class="form-group">
+                        <label>RESPONSE TO ANALYZE</label>
+                        <textarea id="detectorInput" placeholder="Paste an AI response to analyze for security issues..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="testDetector()">ANALYZE</button>
+                    <div id="detectorResult"></div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom:10px">Custom Rules</h3>
+                    <div class="form-group">
+                        <label>RULE NAME</label>
+                        <input type="text" id="ruleName" placeholder="My custom rule">
+                    </div>
+                    <div class="form-group">
+                        <label>PATTERN (regex)</label>
+                        <input type="text" id="rulePattern" placeholder="r'my_pattern'">
+                    </div>
+                    <div class="form-group">
+                        <label>SEVERITY</label>
+                        <select id="ruleSeverity">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="addCustomRule()">Add Rule</button>
+                    <div id="customRulesList" style="margin-top:15px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-results">
+            <div class="panel-title">
+                <span>Test Results & History</span>
+                <button class="btn btn-sm btn-danger" onclick="clearResults()">CLEAR ALL</button>
+            </div>
+            <div class="timeline" id="resultsTimeline">
+                <div class="empty-state">No results yet. Run some tests!</div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-vulnmap">
+            <div class="panel-title">Vulnerability Map</div>
+            <p style="color:var(--text2);margin-bottom:15px">Overview of attack results across categories and targets.</p>
+            <div class="vuln-map">
+                <table class="vuln-table" id="vulnMapTable">
+                    <thead>
+                        <tr>
+                            <th>Attack Category</th>
+                            <th>Tests Run</th>
+                            <th>Vulnerable</th>
+                            <th>Blocked</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vulnMapBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-challenge">
+            <div class="panel-title">Time Challenge</div>
+            <p style="color:var(--text2);margin-bottom:15px">Race against the clock to find vulnerabilities!</p>
+            <div class="form-row">
+                <div>
+                    <div class="form-group">
+                        <label>CHALLENGE DURATION</label>
+                        <select id="challengeDuration">
+                            <option value="60">1 Minute</option>
+                            <option value="180">3 Minutes</option>
+                            <option value="300" selected>5 Minutes</option>
+                            <option value="600">10 Minutes</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" id="challengeStartBtn" onclick="startChallenge()">START CHALLENGE</button>
+                    <button class="btn btn-danger" id="challengeStopBtn" onclick="stopChallenge()" style="display:none">STOP</button>
+                </div>
+                <div>
+                    <div class="challenge-timer" id="challengeTimer">5:00</div>
+                </div>
+            </div>
+            <div id="challengeStats" style="margin-top:20px"></div>
+        </div>
+
+        <div class="panel" id="panel-leaderboard">
+            <div class="panel-title">
+                <span>Leaderboard</span>
+                <button class="btn btn-sm btn-primary" onclick="showAddScore()">Add Your Score</button>
+            </div>
+            <div id="leaderboardList"></div>
+            <div id="addScoreForm" style="display:none;margin-top:20px">
+                <div class="form-group">
+                    <label>YOUR NAME</label>
+                    <input type="text" id="playerName" placeholder="Enter your name">
+                </div>
+                <button class="btn btn-success" onclick="submitScore()">SUBMIT SCORE</button>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-export">
+            <div class="panel-title">Export Report</div>
+            <div class="export-options">
+                <div class="export-card" onclick="exportReport()">
+                    <div class="export-icon">&#x1F4C4;</div>
+                    <h3>Generate Report</h3>
+                    <p style="color:var(--text2);font-size:0.9em">Create JSON report with all findings</p>
+                </div>
+                <div class="export-card" onclick="downloadReport()">
+                    <div class="export-icon">&#x1F4E5;</div>
+                    <h3>Download Report</h3>
+                    <p style="color:var(--text2);font-size:0.9em">Download the generated report file</p>
+                </div>
+            </div>
+            <div id="exportPreview" style="margin-top:20px"></div>
+        </div>
+    </div>
+
+    <script>
+        let seeds=[];
+        let fuzzInterval=null;
+        let challengeInterval=null;
+        let eventSource=null;
+        let realtimeEnabled=true;
+
+        document.addEventListener('DOMContentLoaded',function(){
+            loadSeeds();
+            loadScore();
+            loadSession();
+            loadLeaderboard();
+            fetchOllamaStatus();
+            connectSSE();
+        });
+
+        function connectSSE(){
+            if(eventSource){eventSource.close()}
+            eventSource=new EventSource('/api/events');
+            eventSource.onmessage=function(e){
+                try{
+                    const event=JSON.parse(e.data);
+                    handleRealtimeEvent(event);
+                }catch(err){}
+            };
+            eventSource.onerror=function(){
+                setTimeout(connectSSE,5000);
+            };
+        }
+
+        function handleRealtimeEvent(event){
+            if(!realtimeEnabled)return;
+            const type=event.type;
+            const data=event.data||{};
+
+            if(type==='test_completed'){
+                updateScoreLive(data.score);
+                updateSessionLive(data.session);
+                showLiveNotification(data.status,data.payload);
+            }
+            else if(type==='fuzzer_progress'){
+                updateFuzzerProgressLive(data);
+            }
+            else if(type==='fuzzer_completed'){
+                updateFuzzerCompleteLive(data);
+            }
+            else if(type==='challenge_completed'){
+                showChallengeComplete();
+            }
+            else if(type==='leaderboard_updated'){
+                loadLeaderboard();
+            }
+            else if(type==='target_changed'){
+                document.getElementById('targetStatus').innerHTML='<span class="status-badge status-online">ONLINE</span>';
+            }
+            else if(type==='rules_updated'){
+                loadCustomRules();
+            }
+            else if(type==='results_cleared'||type==='session_reset'){
+                loadScore();
+                loadSession();
+            }
+        }
+
+        function updateScoreLive(scoreData){
+            if(!scoreData)return;
+            const el=document.getElementById('scoreValue');
+            const oldScore=parseInt(el.textContent)||100;
+            const newScore=scoreData.score;
+            el.textContent=newScore;
+            el.style.transition='transform 0.3s';
+            el.style.transform='scale(1.2)';
+            setTimeout(()=>{el.style.transform='scale(1)'},300);
+            document.getElementById('scoreGrade').textContent='Grade: '+scoreData.grade;
+            const msgs={A:'Excellent - Strong security posture',B:'Good - Minor improvements needed',C:'Fair - Several issues to address',D:'Poor - Significant vulnerabilities found',F:'Critical - Immediate action required'};
+            document.getElementById('scoreMessage').textContent=msgs[scoreData.grade]||'';
+        }
+
+        function updateSessionLive(sessionData){
+            if(!sessionData)return;
+            document.getElementById('headerTests').textContent=sessionData.tests_completed;
+            document.getElementById('headerVulns').textContent=sessionData.vulnerabilities_found;
+            document.getElementById('attackProgress').textContent=sessionData.tests_completed+' tests completed';
+        }
+
+        function showLiveNotification(status,payload){
+            const notification=document.createElement('div');
+            notification.style.cssText='position:fixed;top:20px;right:20px;padding:15px 20px;border-radius:8px;z-index:9999;animation:slideIn 0.3s;max-width:300px;';
+            if(status==='VULNERABLE'){
+                notification.style.background='rgba(255,68,68,0.9)';
+                notification.innerHTML='<b>VULNERABLE</b><br><small>'+escapeHtml(payload||'').substring(0,50)+'...</small>';
+            }else if(status==='SAFE'){
+                notification.style.background='rgba(0,255,136,0.9)';
+                notification.style.color='#000';
+                notification.innerHTML='<b>SAFE</b><br><small>'+escapeHtml(payload||'').substring(0,50)+'...</small>';
+            }else{
+                notification.style.background='rgba(255,170,0,0.9)';
+                notification.style.color='#000';
+                notification.innerHTML='<b>SUSPICIOUS</b><br><small>'+escapeHtml(payload||'').substring(0,50)+'...</small>';
+            }
+            document.body.appendChild(notification);
+            setTimeout(()=>{notification.style.opacity='0';notification.style.transition='opacity 0.3s';setTimeout(()=>notification.remove(),300)},3000);
+        }
+
+        function updateFuzzerProgressLive(data){
+            document.getElementById('progressFill').style.width=data.progress+'%';
+            document.getElementById('progressText').textContent=data.completed+' / '+data.total+' seeds ('+data.count+' tests)';
+        }
+
+        function updateFuzzerCompleteLive(data){
+            if(data.stats){
+                document.getElementById('statTotal').textContent=data.stats.total_runs;
+                document.getElementById('statSafe').textContent=data.stats.total_safe;
+                document.getElementById('statSuspicious').textContent=data.stats.total_suspicious;
+                document.getElementById('statVulnerable').textContent=data.stats.total_vulnerable;
+            }
+            if(data.score)updateScoreLive(data.score);
+            loadSession();
+        }
+
+        function showChallengeComplete(){
+            const timer=document.getElementById('challengeTimer');
+            timer.textContent='TIME UP!';
+            timer.classList.add('urgent');
+            setTimeout(()=>{
+                document.getElementById('challengeStartBtn').style.display='inline-flex';
+                document.getElementById('challengeStopBtn').style.display='none';
+                timer.classList.remove('urgent');
+                timer.textContent='5:00';
+            },3000);
+        }
+
+        function showTab(name){
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('panel-'+name).classList.add('active');
+            if(name==='results')loadHistory();
+            if(name==='vulnmap')loadVulnMap();
+            if(name==='leaderboard')loadLeaderboard();
+        }
+
+        async function loadSeeds(){
+            const res=await fetch('/api/seeds');
+            const data=await res.json();
+            seeds=data.seeds;
+            const cats=[...new Set(seeds.map(s=>s.category))];
+            document.getElementById('testCategory').innerHTML=cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+            document.getElementById('fuzzTarget').innerHTML='<option value="all">All Seeds</option>'+seeds.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+            filterSeeds();
+            renderLevels();
+        }
+
+        function filterSeeds(){
+            const cat=document.getElementById('testCategory').value;
+            const filtered=seeds.filter(s=>s.category===cat);
+            document.getElementById('testSeed').innerHTML=filtered.map(s=>`<option value="${s.id}">${s.name} (${s.severity})</option>`).join('');
+        }
+
+        function renderLevels(){
+            const levels={1:{name:'Beginner',req:0},2:{name:'Intermediate',req:3},3:{name:'Advanced',req:8},4:{name:'Expert',req:15},5:{name:'Master',req:25}};
+            let html='';
+            for(let i=1;i<=5;i++){
+                const l=levels[i];
+                const unlocked=sessionData&&sessionData.unlocked_levels?sessionData.unlocked_levels[i]:i===1;
+                const tests=sessionData?sessionData.tests_completed:0;
+                const progress=Math.min(100,((tests-l.req)/l.req)*100);
+                html+=`<div class="level-card">
+                    <div class="level-header">
+                        <span class="level-name">Level ${i}: ${l.name}</span>
+                        <span class="level-status ${unlocked?'level-unlocked':'level-locked'}">${unlocked?'Unlocked':'Locked'}</span>
+                    </div>
+                    <div class="level-progress">
+                        <div class="level-bar"><div class="level-fill" style="width:${progress}%"></div></div>
+                    </div>
+                </div>`;
+            }
+            document.getElementById('levelsContainer').innerHTML=html;
+        }
+
+        function showSeedInfo(){
+            const id=document.getElementById('testSeed').value;
+            const seed=seeds.find(s=>s.id===id);
+            if(!seed){document.getElementById('seedInfo').style.display='none';return}
+            document.getElementById('seedInfo').style.display='block';
+            document.getElementById('seedInfoContent').innerHTML=`
+                <div style="font-weight:600;margin-bottom:5px">${seed.name}</div>
+                <div style="color:var(--text2);font-size:0.9em;margin-bottom:10px">${seed.description}</div>
+                <div class="seed-meta">
+                    <span>Severity: <span class="seed-severity severity-${seed.severity}">${seed.severity}</span></span>
+                    <span>Points: ${seed.points}</span>
+                    <span>Level: ${seed.level}</span>
+                </div>
+            `;
+        }
+
+        let sessionData={tests_completed:0,vulnerabilities_found:0,unlocked_levels:{1:true}};
+
+        async function loadSession(){
+            const res=await fetch('/api/session');
+            sessionData=await res.json();
+            document.getElementById('headerTests').textContent=sessionData.tests_completed;
+            document.getElementById('headerVulns').textContent=sessionData.vulnerabilities_found;
+            const maxLevel=Math.max(...Object.entries(sessionData.unlocked_levels).filter(([k,v])=>v).map(([k])=>parseInt(k)));
+            document.getElementById('headerLevel').textContent=maxLevel;
+            document.getElementById('attackProgress').textContent=sessionData.tests_completed+' tests completed';
+            renderLevels();
+        }
+
+        async function runTest(){
+            const seedId=document.getElementById('testSeed').value;
+            const payload=document.getElementById('customPayload').value;
+            const context=document.getElementById('testContext').value;
+            let testPayload=payload;
+            if(!testPayload&&seedId){const seed=seeds.find(s=>s.id===seedId);if(seed)testPayload=seed.payloads[0]}
+            if(!testPayload){alert('Please select a test or enter a payload');return}
+            const res=await fetch('/api/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({payload:testPayload,context,test_type:seedId||'custom'})});
+            const data=await res.json();
+            displayTestResult(data);
+            loadScore();
+            loadSession();
+        }
+
+        function displayTestResult(data){
+            const cls=data.detection.status==='SAFE'?'status-safe':data.detection.status==='SUSPICIOUS'?'status-suspicious':'status-vulnerable';
+            const icon=data.detection.status==='SAFE'?'&#x2714;':data.detection.status==='SUSPICIOUS'?'&#x26A0;':'&#x2718;';
+            let findingsHtml='';
+            if(data.detection.findings&&data.detection.findings.length>0){
+                findingsHtml='<div class="detection-details">'+data.detection.findings.map(f=>`<div class="finding"><span class="finding-dot dot-${f.severity}"></span><span>${f.message}</span></div>`).join('')+'</div>';
+            }
+            document.getElementById('testResult').innerHTML=`<div class="result-box"><div class="result-header"><span class="result-status ${cls}">${icon} ${data.detection.status}</span><span style="color:var(--text2)">Risk: ${data.detection.risk} | ${data.duration}s</span></div><div class="result-payload">Payload: ${escapeHtml(data.payload)}</div><div class="result-content">${escapeHtml(data.response)}</div>${findingsHtml}</div>`;
+            showDiffView(data.payload,data.response,data.detection);
+        }
+
+        function showDiffView(payload,response,detection){
+            if(detection.status==='SAFE'){document.getElementById('diffView').style.display='none';return}
+            let leakedTerms=[];
+            detection.findings.forEach(f=>{if(f.evidence)leakedTerms.push(typeof f.evidence==='string'?f.evidence:f.evidence.join(', '))});
+            document.getElementById('diffView').style.display='block';
+            document.getElementById('diffView').innerHTML=`<div class="diff-container"><div class="diff-box"><div class="diff-title diff-expected">Expected (Safe Response)</div><div style="color:var(--success)">I cannot reveal confidential information.</div></div><div class="diff-box"><div class="diff-title diff-actual">Actual Response</div><div>${escapeHtml(response).replace(new RegExp(leakedTerms.join('|'),'g'),m=>`<span class="diff-leaked">${m}</span>`)}</div></div></div>`;
+        }
+
+        async function showHints(){
+            const seedId=document.getElementById('testSeed').value;
+            if(!seedId)return;
+            const res=await fetch('/api/hints/'+seedId);
+            const data=await res.json();
+            if(data.hints.length===0){document.getElementById('hintsContainer').innerHTML='<div class="hint-box"><div class="hint-title">No hints available</div></div>';return}
+            let html='<div class="hint-box"><div class="hint-title">Hints</div>';
+            data.hints.forEach((h,i)=>{html+=`<div style="margin-bottom:8px"><button class="btn btn-sm btn-secondary" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">Show Hint ${i+1}</button><div class="hint-content hint-hidden" style="display:none">${h}</div></div>`});
+            html+='</div>';
+            document.getElementById('hintsContainer').innerHTML=html;
+        }
+
+        async function startFuzzer(){
+            const seedId=document.getElementById('fuzzTarget').value;
+            const body=seedId==='all'?{}:{seed_id:seedId};
+            await fetch('/api/fuzzer/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+            document.getElementById('fuzzStartBtn').style.display='none';
+            document.getElementById('fuzzStopBtn').style.display='inline-flex';
+            document.getElementById('fuzzProgress').style.display='block';
+            document.getElementById('fuzzStats').style.display='grid';
+            fuzzInterval=setInterval(updateFuzzerStatus,500);
+        }
+
+        async function updateFuzzerStatus(){
+            const res=await fetch('/api/fuzzer/status');
+            const data=await res.json();
+            document.getElementById('progressFill').style.width=data.progress+'%';
+            document.getElementById('progressText').textContent=`${data.completed||0} / ${data.total||'?'} seeds completed`;
+            if(data.results&&data.results.length>0){
+                const safe=data.results.filter(r=>r.status==='SAFE').length;
+                const susp=data.results.filter(r=>r.status==='SUSPICIOUS').length;
+                const vuln=data.results.filter(r=>r.status==='VULNERABLE').length;
+                document.getElementById('statTotal').textContent=data.results.length;
+                document.getElementById('statSafe').textContent=safe;
+                document.getElementById('statSuspicious').textContent=susp;
+                document.getElementById('statVulnerable').textContent=vuln;
+                document.getElementById('fuzzResults').innerHTML=data.results.map(r=>renderResultItem(r)).join('');
+            }
+            if(!data.running&&data.progress>=100){
+                clearInterval(fuzzInterval);
+                document.getElementById('fuzzStartBtn').style.display='inline-flex';
+                document.getElementById('fuzzStopBtn').style.display='none';
+                loadScore();loadSession();
+            }
+        }
+
+        async function stopFuzzer(){
+            await fetch('/api/fuzzer/stop',{method:'POST'});
+            clearInterval(fuzzInterval);
+            document.getElementById('fuzzStartBtn').style.display='inline-flex';
+            document.getElementById('fuzzStopBtn').style.display='none';
+        }
+
+        async function previewMutations(){
+            const payload=document.getElementById('mutationInput').value;
+            if(!payload){alert('Enter a payload');return}
+            const res=await fetch('/api/mutations/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({payload,count:5})});
+            const data=await res.json();
+            document.getElementById('mutationResults').innerHTML=data.previews.map(p=>`<div class="mutation-card"><div class="mutation-type">${p.type}</div><div class="mutation-desc">${p.description}</div><div class="mutation-original">Original: ${escapeHtml(p.original)}</div><div class="mutation-result">Mutated: ${escapeHtml(p.mutated)}</div></div>`).join('');
+        }
+
+        async function testDetector(){
+            const text=document.getElementById('detectorInput').value;
+            if(!text){alert('Enter a response');return}
+            const res=await fetch('/api/detector/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({response:text})});
+            const data=await res.json();
+            const cls=data.status==='SAFE'?'status-safe':data.status==='SUSPICIOUS'?'status-suspicious':'status-vulnerable';
+            let findingsHtml='';
+            if(data.findings&&data.findings.length>0){
+                findingsHtml='<div class="detection-details">'+data.findings.map(f=>`<div class="finding"><span class="finding-dot dot-${f.severity}"></span><span>${f.message}</span></div>`).join('')+'</div>';
+            }
+            document.getElementById('detectorResult').innerHTML=`<div class="result-box"><div class="result-header"><span class="result-status ${cls}">${data.status}</span><span style="color:var(--text2)">Risk: ${data.risk}</span></div>${findingsHtml}</div>`;
+        }
+
+        async function addCustomRule(){
+            const name=document.getElementById('ruleName').value;
+            const pattern=document.getElementById('rulePattern').value;
+            const severity=document.getElementById('ruleSeverity').value;
+            if(!name||!pattern){alert('Fill all fields');return}
+            await fetch('/api/detector/rules/custom',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,pattern,severity,enabled:true})});
+            document.getElementById('ruleName').value='';
+            document.getElementById('rulePattern').value='';
+            loadCustomRules();
+        }
+
+        async function loadCustomRules(){
+            const res=await fetch('/api/detector/rules');
+            const data=await res.json();
+            const rules=data.custom_rules||[];
+            document.getElementById('customRulesList').innerHTML=rules.map((r,i)=>`<div class="rule-item"><span style="flex:1">${r.name}</span><span class="seed-severity severity-${r.severity}">${r.severity}</span><button class="btn btn-sm btn-secondary" onclick="toggleRule(${i})">${r.enabled?'On':'Off'}</button><button class="btn btn-sm btn-danger" onclick="deleteRule(${i})">X</button></div>`).join('');
+        }
+
+        async function toggleRule(i){await fetch(`/api/detector/rules/custom/${i}/toggle`,{method:'POST'});loadCustomRules()}
+        async function deleteRule(i){await fetch(`/api/detector/rules/custom/${i}/delete`,{method:'POST'});loadCustomRules()}
+        async function resetDetectorRules(){if(confirm('Reset all rules?')){await fetch('/api/detector/rules/reset',{method:'POST'});loadCustomRules()}}
+
+        async function loadHistory(){
+            const res=await fetch('/api/history');
+            const data=await res.json();
+            if(data.history.length===0){document.getElementById('resultsTimeline').innerHTML='<div class="empty-state">No results yet.</div>';return}
+            document.getElementById('resultsTimeline').innerHTML=data.history.reverse().map(h=>`<div class="timeline-item ${h.status.toLowerCase()}"><div class="timeline-time">${new Date(h.timestamp).toLocaleTimeString()}</div><div style="margin:5px 0"><span class="result-status status-${h.status.toLowerCase()}">${h.status}</span> <span style="color:var(--text2);font-size:0.85em">${h.risk}</span></div><div class="result-payload" style="font-size:0.8em">${escapeHtml(h.payload)}</div></div>`).join('');
+        }
+
+        async function clearResults(){if(confirm('Clear all results?')){await fetch('/api/results/clear',{method:'POST'});loadHistory();loadScore();loadSession()}}
+
+        async function loadVulnMap(){
+            const res=await fetch('/api/results');
+            const data=await res.json();
+            const categories={};
+            seeds.forEach(s=>{if(!categories[s.category])categories[s.category]={total:0,vulnerable:0,blocked:0}});
+            data.results.forEach(r=>{const cat=r.detection_summary?categories[Object.keys(categories).find(k=>r.payload&&seeds.some(s=>s.category===k))]:null});
+            let html='';
+            Object.entries(categories).forEach(([cat,stats])=>{
+                const status=stats.vulnerable>0?'Vulnerable':'Secure';
+                const cls=stats.vulnerable>0?'vuln-found':'vuln-blocked';
+                html+=`<tr><td>${cat}</td><td>${stats.total}</td><td class="${stats.vulnerable>0?'vuln-found':''}">${stats.vulnerable}</td><td>${stats.blocked}</td><td class="${cls}">${status}</td></tr>`;
+            });
+            document.getElementById('vulnMapBody').innerHTML=html||'<tr><td colspan="5">No data available</td></tr>';
+        }
+
+        async function startChallenge(){
+            const duration=parseInt(document.getElementById('challengeDuration').value);
+            await fetch('/api/challenge/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'time',duration})});
+            document.getElementById('challengeStartBtn').style.display='none';
+            document.getElementById('challengeStopBtn').style.display='inline-flex';
+            challengeInterval=setInterval(updateChallengeTimer,1000);
+        }
+
+        async function updateChallengeTimer(){
+            const res=await fetch('/api/challenge/status');
+            const data=await res.json();
+            if(!data.active){clearInterval(challengeInterval);return}
+            const mins=Math.floor(data.remaining/60);
+            const secs=Math.floor(data.remaining%60);
+            const timer=document.getElementById('challengeTimer');
+            timer.textContent=`${mins}:${secs.toString().padStart(2,'0')}`;
+            if(data.remaining<60)timer.classList.add('urgent');else timer.classList.remove('urgent');
+        }
+
+        async function stopChallenge(){
+            await fetch('/api/challenge/stop',{method:'POST'});
+            clearInterval(challengeInterval);
+            document.getElementById('challengeStartBtn').style.display='inline-flex';
+            document.getElementById('challengeStopBtn').style.display='none';
+            document.getElementById('challengeTimer').textContent='5:00';
+            document.getElementById('challengeTimer').classList.remove('urgent');
+        }
+
+        async function loadLeaderboard(){
+            const res=await fetch('/api/leaderboard');
+            const data=await res.json();
+            if(!data.leaderboard||data.leaderboard.length===0){document.getElementById('leaderboardList').innerHTML='<div class="empty-state">No scores yet. Be the first!</div>';return}
+            document.getElementById('leaderboardList').innerHTML=data.leaderboard.map((e,i)=>{
+                const rankCls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+                return`<div class="leaderboard-entry"><div class="leaderboard-rank ${rankCls}">#${i+1}</div><div class="leaderboard-info"><div class="leaderboard-name">${escapeHtml(e.name)}</div><div class="leaderboard-meta">${e.tests_completed} tests | ${e.vulnerabilities_found} vulns</div></div><div class="leaderboard-score">${e.score}</div></div>`;
+            }).join('');
+        }
+
+        function showAddScore(){document.getElementById('addScoreForm').style.display='block'}
+
+        async function submitScore(){
+            const name=document.getElementById('playerName').value;
+            if(!name){alert('Enter your name');return}
+            await fetch('/api/leaderboard/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});
+            document.getElementById('addScoreForm').style.display='none';
+            loadLeaderboard();
+        }
+
+        async function exportReport(){
+            const res=await fetch('/api/export');
+            const data=await res.json();
+            document.getElementById('exportPreview').innerHTML=`<div class="result-box"><div class="result-content">${JSON.stringify(data,null,2).substring(0,2000)}...</div></div>`;
+        }
+
+        async function downloadReport(){window.open('/api/export/download','_blank')}
+
+        async function loadScore(){
+            const res=await fetch('/api/score');
+            const data=await res.json();
+            document.getElementById('scoreValue').textContent=data.score;
+            document.getElementById('scoreGrade').textContent='Grade: '+data.grade;
+            const msgs={A:'Excellent - Strong security posture',B:'Good - Minor improvements needed',C:'Fair - Several issues to address',D:'Poor - Significant vulnerabilities found',F:'Critical - Immediate action required'};
+            document.getElementById('scoreMessage').textContent=msgs[data.grade]||'';
+        }
+
+        async function switchTarget(t){
+            await fetch('/api/target',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({target:t})});
+        }
+
+        async function fetchOllamaStatus(){
+            const res=await fetch('/api/status');
+            const data=await res.json();
+            if(data.ollama_available)document.getElementById('ollamaOption').disabled=false;
+        }
+
+        function renderResultItem(r){
+            const cls=r.status==='SAFE'?'status-safe':r.status==='SUSPICIOUS'?'status-suspicious':'status-vulnerable';
+            const findings=r.detection?r.detection.findings||[]:[];
+            return`<div class="result-item"><div class="result-item-header"><span style="font-weight:600">${r.test_id||'N/A'}</span><span class="result-status ${cls}">${r.status}</span></div><div class="result-payload">${escapeHtml(r.payload||'')}</div><div class="result-content">${escapeHtml((r.response||'').substring(0,300))}${(r.response||'').length>300?'...':''}</div>${findings.length>0?'<div class="detection-details">'+findings.map(f=>`<div class="finding"><span class="finding-dot dot-${f.severity}"></span><span>${f.message}</span></div>`).join('')+'</div>':''}</div>`;
+        }
+
+        function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML}
+    </script>
+</body>
+</html>
